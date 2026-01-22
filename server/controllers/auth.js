@@ -1,6 +1,7 @@
 import { userModel } from "../models/user.js";
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
+import { generateToken } from "../utils/generateToken.js";
 
 export const userRegister = async (req, res) => {
     try {
@@ -20,6 +21,9 @@ export const userRegister = async (req, res) => {
         if (!user) {
             res.status(500).json({ message: "User registration failed" })
         }
+
+        const token = generateToken({email,role:user.role,name})
+        res.cookie("token",token)
         
         res.status(201).json({ message: "User registered successfully", user })
     } catch (error) {
@@ -39,7 +43,7 @@ export const userLogin = async (req, res) => {
         const user = await userModel.findOne({email});
        
         if (!user) {
-            res.status(400).json({ message: "User not found" })
+            return res.status(400).json({ message: "User not found" })
         }
         
         const isPasswordValid = await bcrypt.compare(password,user.password);
@@ -47,6 +51,8 @@ export const userLogin = async (req, res) => {
             res.status(400).json({ message: "Invalid credentials" })
             return
         }
+        const token = generateToken({email,role:user.role,name:user.name})
+        res.cookie("token",token)
 
         res.status(201).json({ message: "User logged in successfully", user })
     } catch (error) {
@@ -56,6 +62,7 @@ export const userLogin = async (req, res) => {
 }
 
 export const userLogout = async (req,res)=>{
+    res.clearCookie("token")
     res.send("User logged Out")
 }
 
@@ -63,7 +70,7 @@ export const getUserProfile = async (req,res)=>{
     const {email} = req.body
     const user = await userModel.findOne({email}).select("-password")
     if (!user) {
-        res.status(400).json({ message: "User not found" })
+        return res.status(400).json({ message: "User not found" })
     }
     res.status(200).json({user})
 }
