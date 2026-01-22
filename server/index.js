@@ -26,6 +26,6 @@ app.get("/",(req,res)=>{
 app.use("/auth",userRouter)
 
 const PORT = process.env.PORT
-app.listen(PORT || 4000,()=>{
+app.listen(PORT || 3000,()=>{
     console.log(`Server running on Port: ${PORT}`)
 })
